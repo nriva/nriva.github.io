@@ -1,41 +1,43 @@
 <html>
 <head>
-  <script>
-  function test(id,answerId)
-  {
-
-    var elements = document.getElementsByName('answer1');
-    var i=0;
-    for(var i=0;i<elements.length;i++)
-    {
-      if(elements[i].checked)
-        break;
-
-    }
-    if(i+1==answerId)
-    ;
-    else {
-      var elem=document.getElementById('case' + id + (i+1));
-      elem.style.color="red";
-    }
-
-  }
-
-  function onload()
-  {
-    //document.getElementById('text1').value = window.localStorage.getItem('text1');
-  }
-  </script>
+  <script type="application/javascript" src="quiz.js"></script>
 </head>
 <body onload="onload()">
 
-<form id=quiz1>
+<button onclick="testAll()">Verfica</button>
+
+<div style="display:none" id=testOk>
+Test superato!
+</div>
+
+<div style="display:none" id=testFail>
+Test non superato!
+</div>
+
+
+
+<h2>Domanda 1</h2>
+
+<form id=quiz01>
 <ol>
-  <li><input type=radio name=answer1 id=answer11>&nbsp;<span id=case11>risposta 1</span>
-  <li><input type=radio name=answer1 id=answer12>&nbsp;<SPAN id=case12>risposta 2</span>
-  <li><input type=radio name=answer1 id=answer13>&nbsp;<span id=case13>risposta 3</span>
+  <li><input type=radio name=answer01 id=answer01_1>&nbsp;<span id=case01_1>risposta 1</span>
+  <li><input type=radio name=answer01 id=answer01_2>&nbsp;<span id=case01_2>risposta 2</span>
+  <li><input type=radio name=answer01 id=answer01_3>&nbsp;<span id=case01_3>risposta 3</span>
 </ol>
 </form>
-<button onclick="test('1',1)">Test!</button>
+<button onclick="test(1)">Test!</button>
+
+<h2>Domanda 2</h2>
+<form id=quiz02>
+<ol>
+  <li><input type=radio name=answer02 id=answer02_1>&nbsp;<span id=case02_1>risposta 1</span>
+  <li><input type=radio name=answer02 id=answer02_2>&nbsp;<span id=case02_2>risposta 2</span>
+  <li><input type=radio name=answer02 id=answer02_3>&nbsp;<span id=case02_3>risposta 3</span>
+</ol>
+</form>
+<button onclick="test(2)">Test!</button>
+
+
+
 </body>
 </html>
