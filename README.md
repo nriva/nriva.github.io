@@ -1,3 +1,3 @@
 # nriva.github.io
 
-Some sammple applications.
+Some sample applications.
