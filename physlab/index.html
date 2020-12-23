@@ -3,286 +3,267 @@
 <head>
     <meta charset="utf-8" />
     <title>PhysLabJs</title>
+    <!-- Add icon library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> 
     <style>
+
         body {
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background-color: #F0F0F0;
+            background-color: darkslategrey;
+            color: whitesmoke;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            font-size: small;
         }
+
+        #toolbar {
+          position: fixed; 
+          z-index: 1;
+        }
+
+        #bodies { 
+          border: 1px solid white;
+          border-collapse: collapse;
+          margin-top: 5px;
+          margin-right: 5px;
+        	position: absolute;
+	        top: 0;
+	        right: 0;
+	        width: 400px;
+          z-index: 1;
+        }
+
+        thead {
+          border: 1px solid white;
+          border-collapse: collapse;
+        }
+
+        th, #tbbodies td {
+          text-align: center;
+        }
+
+        button {
+          background-color: white;
+          padding: 4px 8px;
+          text-align: center;
+          text-decoration: none;
+          display: inline-block;
+          font-size: small;
+          border-radius: 4px;
+        }        
+
+        #footerVersion {
+          position: fixed; 
+          z-index: 1;
+          bottom: 0;
+	        right: 0;
+          width: 100%;
+          text-align: right;
+          margin-bottom: 5px;
+          margin-right: 5px;
+        }
+
+        #tooltip2 {
+          text-align: center;
+          width: 100%;
+          margin-top: 2px;
+          font-style: italic;
+        }
+
+
+        /* The Modal (background) */
+        .modal {
+          display: none; /* Hidden by default */
+          position: fixed; /* Stay in place */
+          z-index: 2; /* Sit on top */
+          padding-top: 100px; /* Location of the box */
+          left: 0;
+          top: 0;
+          width: 100%; /* Full width */
+          height: 100%; /* Full height */
+          overflow: auto; /* Enable scroll if needed */
+          background-color: rgb(0,0,0); /* Fallback color */
+          background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+
+        /* Modal Content */
+        .modal-content {
+          position: relative;
+          background-color: darkslategrey;
+          margin: auto;
+          padding: 0;
+          border: 1px solid #888;
+          width: 80%;
+          box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+          -webkit-animation-name: animatetop;
+          -webkit-animation-duration: 0.4s;
+          animation-name: animatetop;
+          animation-duration: 0.4s
+        }
+
+        /* Add Animation */
+        @-webkit-keyframes animatetop {
+          from {top:-300px; opacity:0} 
+          to {top:0; opacity:1}
+        }
+
+        @keyframes animatetop {
+          from {top:-300px; opacity:0}
+          to {top:0; opacity:1}
+        }
+
+        /* The Close Button */
+        .close {
+          /* color: white; */
+          float: right;
+          font-size: 28px;
+          font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+          color: #000;
+          text-decoration: none;
+          cursor: pointer;
+        }
+
+        .modal-header {
+          padding: 2px 16px;
+          background-color: #597259;
+          color: white;
+        }
+
+        .modal-body {padding: 2px 16px;}
+
+        .modal-footer {
+          padding: 2px 16px;
+          background-color: #597259;
+          color: white;
+        }
+
+
     </style>
-<script src="https://cdn.rawgit.com/konvajs/konva/2.0.3/konva.min.js"></script>
-<script src="js/body.js"></script>
+
+  <script src="https://cdn.rawgit.com/konvajs/konva/2.0.3/konva.min.js"></script>
+  <script src="js/body.js"></script>
+  <script src="js/phys.js"></script>
+  <script src="js/grav.js"></script>
 </head>
 <body>
 
-<div id=toolbar>
-<span><button onclick="reset()">Reset</button>
-<span><button onclick="start()">Start</button>
-<span><button  onclick="stop()">Stop</button>
-<span><button  onclick="addNew()">+</button>
-<span style="display:none" id="newbodyprops">
-<label id=lblRadius for=inRadius>Radius:</label>
-<input type="text" id=inRadius name=inRadius value="10" size="5">
-<label id=lblDensity for=inDensity>Density:</label>
-<input type="text" id=inDensity name=inDensity value="1" size="5">
-<label>Acceleration:</label>
-<input type="text" id=inAx name=inAx value="0" size="5">
-<input type="text" id=inAy name=inAy value="0" size="5">
-<label>Speed:</label>
-<input type="text" id=inDx name=inDx value="0" size="5">
-<input type="text" id=inDy name=inDy value="0" size="5">
-<label id=lblColor for="inColor">Color:</label><input type="color" id="inColor" name="inColor">
-<button onclick="confirmNew()">Confirm</button> 
-<button onclick="cancelNew()">Cancel</button></span>
-</div>
-  <div id="container"></div>
-<script>
+<!-- Modal: Config-->
+  <div id="modalConfig" class="modal">
 
-var ELAST_COEFF = 0.75;
-
-var animationOn = false;
-var inEdit = false;
-
-var width = window.innerWidth;
-var height = window.innerHeight-10;
-
-var stage = new Konva.Stage({
-    container: 'container',
-    width: width,
-    height: height
-});
-
-var layer = new Konva.Layer();
-stage.add(layer);
-var rectX = 20; //stage.getWidth() / 2 - 50;
-var rectY = 20; //stage.getHeight() / 2 - 25;
-
-var centerX = stage.getWidth() / 2;
-var centerY = stage.getHeight() / 2;
-
-
-/*
-var grpbody1 = new Konva.Circle({
-    x: centerX,  //rectX,
-    y: stage.getHeight() /2 - 250, //rectY,
-    radius: 10,
-    fill: '#00D2FF',
-    strokeWidth: 0,
-    draggable: true
-});
-
-var acc1 = new Konva.Line({
-    points: [0,0,0,0],
-    stroke:'#EE0000',
-    draggable: false
-});
-
-var spd1 = new Konva.Line({
-    points: [0,0,0,0],
-    stroke:'#000000',
-    draggable: false
-});
-
-var grpbody2 = new Konva.Circle({
-    x: stage.getWidth() - 40,
-    y: rectY,
-    radius: 20,
-    fill: '#D200FF',
-    strokeWidth: 0,
-    draggable: true
-});
-
-var acc2 = new Konva.Line({
-    points: [0,0,0,0],
-    stroke:'#EE0000',
-    draggable: false
-});
-
-var spd2 = new Konva.Line({
-    points: [0,0,0,0],
-    stroke:'#000000',
-    draggable: false
-});
-
-
-var grpbody3 = new Konva.Circle({
-    x: centerX,
-    y: stage.getHeight()/2,
-    radius: 30,
-    fill: '#D2FF00',
-    strokeWidth: 0,
-    draggable: true
-});
-
-var acc3 = new Konva.Line({
-    points: [0,0,0,0],
-    stroke:'#EE0000',
-    draggable: false
-});
-
-var spd3 = new Konva.Line({
-    points: [0,0,0,0],
-    stroke:'#000000',
-    draggable: false
-});
-*/
-
-
-// add cursor styling
-/*
-grpbody.on('mouseover', function() {
-    document.body.style.cursor = 'pointer';
-});
-grpbody.on('mouseout', function() {
-    document.body.style.cursor = 'default';
-});
-*/
-
-
-
-  function start()
-  {
-    if(!animationOn)
-    {
-      animationOn = true;
-      anim.start();
-    }
-  }
-
-  function stop()
-  {
-    animationOn=false;
-    anim.stop();
-  }
-
-  function reset()
-  {
-    for(var i=0;i<bodies.length;i++)
-      bodies[i].reset();
-
-    stage.draw();
-  }
+    <div class="modal-content">
+      <div class="modal-header">
+        <span id="closeConfig" class="close"><i class="fa fa-window-close"></i></span>
+        <h2>Edit Configuration</h2>
+      </div>
+      <div class="modal-body">
+        <label>Wall Elastic Coeff:</label><input type=text id=elastCoeff maxlength="4" style="width: 2em"><br/>
+        <label>G constant:</label><input type=text id=constG maxlength="4" style="width: 2em">
+      </div>
+      <div class="modal-footer">
+        <button onclick="closeConfig()"><i class="fa fa-check" aria-hidden="true"></i></button>
+        <button onclick="resetConfig()">Reset to default</button>
+      </div>
+    </div>
   
-  function cancelNew()
-  {
-    inEdit = false;
-    document.getElementById("newbodyprops").style="display:none";
-    document.getElementById("inRadius").value="10";
-    document.getElementById("inAx").value="0";
-    document.getElementById("inAy").value="0";
-    document.getElementById("inDx").value="0";
-    document.getElementById("inDy").value="0";
-    document.getElementById("inDensity").value="1";
-    
-  }
+  </div>
 
-  function confirmNew()
-  {
+  <div id="newbodyprops" class="modal">
+    <div class="modal-content">
 
-    var radius = Number(document.getElementById("inRadius").value);
-    var ax = Number(document.getElementById("inAx").value);
-    var ay = Number(document.getElementById("inAy").value);
-    var dx = Number(document.getElementById("inDx").value);
-    var dy = Number(document.getElementById("inDy").value);
-    var density = Number(document.getElementById("inDensity").value);
+      <div class="modal-header">
+        <span id="closeNewBody" class="close"><i class="fa fa-window-close"></i></span>
+        <h2>New Body</h2>
+      </div>
 
-    var color = document.getElementById("inColor").value;
+      <div class="modal-body">
 
+        <table style="border: 0px; border-collapse: collapse;">
+          <tr>
+            <td><label id=lblRadius for=inRadius>Radius:</label></td>
+            <td><input type="text" id=inRadius name=inRadius value="10" size="5"></td>
+          </tr>
 
-    var grpbody1 = new Konva.Circle({
-    x: centerX, 
-    y: centerY,
-    radius: radius,
-    fill: color,// '#00D2FF',
-    strokeWidth: 0,
-    draggable: true
-    });
+          <tr>
+            <td><label id=lblDensity for=inDensity>Density:</label></td>
+            <td><input type="text" id=inDensity name=inDensity value="1" size="5"></td>
+          </tr>
 
-    
+          <tr>
+            <td><label>Acceleration:</label></td>
+            <td><input type="text" id=inAx name=inAx value="0" size="5"></td>
+            <td><input type="text" id=inAy name=inAy value="0" size="5"></td>
+            <td>Value for acceleration (use Small values ~0.01)</td>
+          </tr>
+          <tr>
+            <td><label>Speed:</label></td>
+            <td><input type="text" id=inDx name=inDx value="0" size="5"></td>
+            <td><input type="text" id=inDy name=inDy value="0" size="5"></td>
+            <td>Values for speed (use values around 1)</td>
+          </tr>
+          <tr>
+            <td><label id=lblColor for="inColor">Color:</label></td>
+            <td><input type="color" id="inColor" name="inColor" value="#FFFFFF"></td>
+          </tr>
+        </table>
 
-    var acc1 = new Konva.Line({
-        points: [0,0,0,0],
-        stroke:'#EE0000',
-        draggable: false
-    });
-
-    var spd1 = new Konva.Line({
-        points: [0,0,0,0],
-        stroke:'#000000',
-        draggable: false
-    });
-
-    layer.add(grpbody1);
-    layer.add(acc1);
-    layer.add(spd1);
-    var body1 = new Body(ax,ay,dx,dy,density,{body:grpbody1,acc:acc1,spd:spd1});
-
-    bodies.push(body1);
-
-    grpbody1.on("dragend", function()
-    {
-      body1.resetInitPos();
-    }); 
-
-    cancelNew();
-    stage.draw();
-  }
-
-  function addNew()
-  {
-    document.getElementById("newbodyprops").style="display:inline";
-    inEdit = true;
-  }
-
-    //var grpbodies = [];
-    var bodies = [];
-    
-
-    /*
-    grpbodies.push(grpbody1);
-    //grpbodies.push(grpbody2);
-    grpbodies.push(acc1);
-    grpbodies.push(spd1);
-    grpbodies.push(grpbody3);
-    grpbodies.push(acc3);
-    grpbodies.push(spd3);
+      </div>
+      <div class="modal-footer">
+        <button onclick="confirmNew()">Confirm</button> 
+        <button onclick="cancelNew()">Cancel</button>
+      </div>
+    </div>
+  </div>
 
 
-    for(var b=0;b<grpbodies.length;b++)
-          layer.add(grpbodies[b]);
-    */
-
-/*
-    var body1 = new Body(0,0,5,0,1,{body:grpbody1,acc:acc1,spd:spd1});
-    var body2 = new Body(0,0,0,0,grpbody2);
-    var body3 = new Body(0,0,0,0,10,{body:grpbody3,acc:acc3,spd:spd3});
-
-
-    bodies.push(body1);
-    //bodies.push(body2);
-    bodies.push(body3);
-*/
-
-    var anim = new Konva.Animation(function(frame) {
-      collisionManagement(bodies, stop);
-      if(animationOn)
-      {
-
-        for(var i=0;i<bodies.length;i++)
-          bodies[i].prepareForInteract();
-
-       interaction(bodies);
-
-        for(var b=0;b<bodies.length;b++)
-        {
-          bodies[b].move();
-        }
-      }
-    }, layer);
-
-    //anim.start();
-</script>
-
+  <div id=toolbar>
+    <div id=line1>
+      <span><button id="showConfigBtn" onclick="showConfig()"><i class="fa fa-cog" aria-hidden="true"></i></button>
+      <span><button id="resetBtn" onclick="reset()"><i class="fa fa-refresh" aria-hidden="true"></i></button>
+      <span><button id="startBtn" onclick="start()" disabled><i class="fa fa-play-circle" aria-hidden="true"></i></button>
+      <span><button id="stopBtn" onclick="stop()" disabled><i class="fa fa-stop-circle" aria-hidden="true"></i></button>
+      <span><button id="newBtn" onclick="addNew()"><i class="fa fa-plus-square" aria-hidden="true"></i></button>
+        <span><button id="loadBtn" onclick="load()"><i class="fa fa-external-link-square" aria-hidden="true"></i></button>
+      <span><button id="saveBtn" onclick="save()" disabled><i class="fa fa-floppy-o" aria-hidden="true"></i></button>
+    </div>
+      <div style="visibility: hidden;" id="newbodyprops">
+          <label id=lblRadius for=inRadius>Radius:</label>
+          <input type="text" id=inRadius name=inRadius value="10" size="5">
+          <label id=lblDensity for=inDensity>Density:</label>
+          <input type="text" id=inDensity name=inDensity value="1" size="5">
+          <label onmousemove="showTooltip(true,'t01')" onmouseout="showTooltip(false)">Acceleration:</label>
+          <input type="text" id=inAx name=inAx value="0" size="5">
+          <input type="text" id=inAy name=inAy value="0" size="5">
+          <label onmousemove="showTooltip(true,'t02')" onmouseout="showTooltip(false)">Speed:</label>
+          <input type="text" id=inDx name=inDx value="0" size="5">
+          <input type="text" id=inDy name=inDy value="0" size="5">
+          <label id=lblColor for="inColor">Color:</label><input type="color" id="inColor" name="inColor" value="#FFFFFF">
+          <button onclick="confirmNew()">Confirm</button> 
+          <button onclick="cancelNew()">Cancel</button>
+      </div>
+      <div id=line2 style="visibility: hidden;">
+        <div id=tooltip2>tooltip text</div>
+      </div>
+    </div>
+  </div>
+  <table id=bodies>
+    <thead><tr>
+      <th>ID</th>
+      <th><i>x</i></th>
+      <th><i style="color: black">x'</i></th>
+      <th><i style="color: #EE0000;">x''</i></th>
+      <th>Action</th>
+    </tr></thead>
+    <tbody id="tbbodies">
+  </tbody>
+  </table>
+  <div id="container"></div>
+  <div id=footerVersion>Version</div> 
+  <script src="js/main.js"></script>
+   
 </body>
 </html>
